@@ -17,7 +17,7 @@ handler.setFormatter(formatter)
 root_logger.addHandler(handler)
 
 
-@app.get("/hello/")
+@app.get("/")
 def hello_world():
     return {"hello": "world"}
 
