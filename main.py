@@ -7,7 +7,8 @@ from psycopg2.sql import SQL, Identifier
 from config_db import config_database
 from fastapi import FastAPI
 
-app = FastAPI() # uvicorn main:app --host 195.2.93.21 --port 80
+
+app = FastAPI() # uvicorn main:app --host 195.2.76.198 --port 80
 
 root_logger= logging.getLogger()
 root_logger.setLevel(logging.INFO)
@@ -488,7 +489,7 @@ def create_new_story(sale_id: int,
             conn.close()
 
 
-# ========================================================================== GET
+# ========================================================================================= GET
 @app.get("/get_all_users/")
 def get_all_users():
     conn = None
@@ -1109,6 +1110,11 @@ def get_all_history():
     finally:
         if conn is not None:
             conn.close()
+
+
+@app.get("/get_driver_users/")
+def get_driver_users():
+    pass
 
 # ========================================================================== UPDATE
 @app.put("/update_users_cell/")
