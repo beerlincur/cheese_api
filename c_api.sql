@@ -137,6 +137,17 @@ CREATE TABLE "clients_work_hours" (
   OIDS=FALSE
 );
 
+CREATE TABLE "clients_future_sales" (
+	"id" serial NOT NULL,
+	"client" integer NOT NULL,
+	"product" character varying(255) NOT NULL,
+	"amount" integer NOT NULL,
+	"delivery_time" TIMESTAMP NOT NULL,
+	"comments" TEXT NOT NULL,
+	CONSTRAINT "clients_future_sales_pk" PRIMARY KEY ("id")
+) WITH (
+  OIDS=FALSE
+);
 
 
 
@@ -159,3 +170,5 @@ ALTER TABLE "history" ADD CONSTRAINT "history_fk1" FOREIGN KEY ("share_id") REFE
 ALTER TABLE "history" ADD CONSTRAINT "history_fk2" FOREIGN KEY ("driver_id") REFERENCES "users"("id");
 
 ALTER TABLE "clients_work_hours" ADD CONSTRAINT "clients_work_hours_fk0" FOREIGN KEY ("client_id") REFERENCES "clients"("id");
+
+ALTER TABLE "clients_future_sales" ADD CONSTRAINT "clients_future_sales_fk0" FOREIGN KEY ("client") REFERENCES "clients"("id");

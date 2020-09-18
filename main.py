@@ -284,7 +284,7 @@ def create_new_purchase(order_time: str,
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---NEW PURCHASE | prod: {product} | prov: {provider_name} created successfully")
+        logging.info(f"{current_time}---NEW PURCHASE | prod: {product} | prov: {provider_id} created successfully")
 
         return {
             "new_purhcase": {
@@ -337,8 +337,7 @@ def create_new_sale(order_time: str,
                                                        paid,\
                                                        debt,\
                                                        comments,\
-                                                       status )\
-                                                values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                                                       status ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
                                                 
         cur.execute(create_sale_sql, ( order_time,
                                        delivery_time,
@@ -355,7 +354,7 @@ def create_new_sale(order_time: str,
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---NEW SALE | c: {client_name} | p: {provider_name} | d: {driver_name} created successfully")
+        logging.info(f"{current_time}---NEW SALE | c: {client_id} | p: {provider_id} | d: {driver_id} created successfully")
 
         return {
             "new_sale": {
@@ -398,8 +397,7 @@ def create_new_share(driver_id: int,
                                                         amount,\
                                                         weight,\
                                                         price_per_kilo\
-                                                        )\
-                                                values (%s, %s, %s, %s, %s);"
+                                                        ) values (%s, %s, %s, %s, %s);"
                                                 
         cur.execute(create_share_sql, ( driver_id,
                                         purchase_id,
@@ -488,6 +486,56 @@ def create_new_story(sale_id: int,
         if conn is not None:
             conn.close()
 
+
+@app.post("/create_clients_future_sale/")
+def create_clients_future_sale(client_id: int, 
+                               product: str,
+                               amount: int,
+                               delivery_time: str,
+                               comments: Optional[str] = ""
+                               ):
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+
+        create_future_sale_sql = "insert into clients_future_sales ( client,\
+                                                                     product,\
+                                                                     amount,\
+                                                                     delivery_time,\
+                                                                     comments) values (%s, %s, %s, %s, %s);"
+                                                
+        cur.execute(create_future_sale_sql, ( client_id,
+                                              product,
+                                              amount,
+                                              delivery_time,
+                                              comments))
+
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---NEW FUTURE SALE | client: {client_id} | product: {product} created successfully")
+
+        return {
+            "new_future_sale": {
+                "client_id": client_id,
+                "product": product,
+                "amount": amount,
+                "delivery_time": delivery_time,
+                "comments": comments
+            } 
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
 
 # ========================================================================================= GET
 @app.get("/get_all_users/")
@@ -1112,9 +1160,329 @@ def get_all_history():
             conn.close()
 
 
-@app.get("/get_driver_users/")
-def get_driver_users():
-    pass
+@app.get("/get_all_drivers_users/")
+def get_all_drivers_users():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_drivers_sql = "select id,\
+                                      name from users\
+                                      left join users_roles on\
+                                      users.id = users_roles.user_id where is_driver='t';"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_drivers_sql)
+
+        drivers_json = {driver[0]: { "name": driver[1] } for driver in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL DRIVERS successfully")
+        
+        return {
+            "drivers": drivers_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_admin_users/")
+def get_all_admin_users():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_admins_sql = "select id,\
+                                     name from users\
+                                     left join users_roles on\
+                                     users.id = users_roles.user_id where is_admin='t';"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_admins_sql)
+
+        admins_json = {admin[0]: { "name": admin[1] } for admin in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL ADMINS successfully")
+        
+        return {
+            "admins": admins_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_operator_users/")
+def get_all_operator_users():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_operators_sql = "select id,\
+                                        name from users\
+                                        left join users_roles on\
+                                        users.id = users_roles.user_id where is_operator='t';"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_operators_sql)
+
+        operators_json = {operator[0]: { "name": operator[1] } for operator in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL OPERATORS successfully")
+        
+        return {
+            "operators": operators_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_super_users/")
+def get_all_super_users():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_superusers_sql = "select id,\
+                                         name from users\
+                                         left join users_roles on\
+                                         users.id = users_roles.user_id where is_operator='t';"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_superusers_sql)
+
+        superusers_json = {superuser[0]: { "name": superuser[1] } for superuser in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL SUPERUSERS successfully")
+        
+        return {
+            "superusers": superusers_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_clients_names/")
+def get_all_clients_names():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_clients_names_sql = "select id,\
+                                            name from clients;"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_clients_names_sql)
+
+        clients_json = {client[0]: { "name": client[1] } for client in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL CLIENTS NAMES successfully")
+        
+        return {
+            "clients": clients_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_providers_names/")
+def get_all_providers_names():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_providers_names_sql = "select id,\
+                                              name from providers;"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_providers_names_sql)
+
+        providers_json = {provider[0]: { "name": provider[1] } for provider in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL PROVIDERS NAMES successfully")
+        
+        return {
+            "providers": providers_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_future_sales/")
+def get_all_future_sales():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_cfuture_sales_sql = "select cfs.id,\
+                                            c.id,\
+                                            c.name,\
+                                            c.entity,\
+                                            c.address,\
+                                            c.address_comments,\
+                                            c.network,\
+                                            c.payment,\
+                                            def_prov.id,\
+                                            def_prov.name,\
+                                            def_prov.contacts,\
+                                            def_prov.comments,\
+                                            c.recoil,\
+                                            c.comments,\
+                                            cwh.monday,\
+                                            cwh.tuesday,\
+                                            cwh.wednesday,\
+                                            cwh.thursday,\
+                                            cwh.friday,\
+                                            cwh.saturday,\
+                                            cwh.sunday,\
+                                            cfs.product,\
+                                            cfs.amount,\
+                                            cfs.delivery_time,\
+                                            cfs.comments from clients_future_sales cfs\
+                                            left join clients c on cfs.client = c.id\
+                                            left join clients_work_hours cwh on cfs.client = cwh.client_id\
+                                            left join providers def_prov on c.default_provider = def_prov.id;"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_cfuture_sales_sql)
+
+        sales_json = {sale[0]: { 
+            "client": {
+                "id": sale[1],
+                "name": sale[2],
+                "entity": sale[3],
+                "address": sale[4],
+                "address_comments": sale[5],
+                "network": sale[6],
+                "payment": sale[7],
+                "default_provider": {
+                    "id": sale[8],
+                    "name": sale[9],
+                    "contacts": sale[10],
+                    "comments": sale[11]
+                },
+                "recoil": sale[12],
+                "comments": sale[13],
+                "work_hours": {
+                    "monday": sale[14],
+                    "tuesday": sale[15],
+                    "wednesday": sale[16],
+                    "thursday": sale[17],
+                    "friday": sale[18],
+                    "saturday": sale[19],
+                    "sunday": sale[20]
+                }
+            },
+            "product": sale[21],
+            "amount": sale[22],
+            "delivery_time": sale[23],
+            "comments": sale[24]
+        } for sale in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL FUTURE SALES successfully")
+        
+        return {
+            "future_sales": sales_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
 
 # ========================================================================== UPDATE
 @app.put("/update_users_cell/")
@@ -1581,6 +1949,56 @@ def update_history_cell(story_id: int,
             conn.close()
 
 
+@app.put("/update_future_clients_sales_cell/")
+def update_clients_sales_cell(sale_id: int,
+                              column: str,
+                              new_value: Any):
+    conn = None
+    try:
+        if column == 'id':
+            return {
+                "error": "You cannot modify 'id' column"
+            }
+
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        update_future_client_sale_cell_sql = \
+            SQL("update future_clients_sales set {} = %s where id = %s returning *;").format(Identifier(column))
+                                                
+        cur.execute(update_future_client_sale_cell_sql, (new_value, sale_id))
+
+        updated_future_client_sale_tuple = cur.fetchone()
+
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---UPDATED FUTURE CLIENT SALE {sale_id} | column {column} | new value {new_value}")
+        
+        return {
+            "updated_future_client_sale": {
+                updated_sale_tuple[0]: {
+                    "client": updated_future_client_sale_tuple[1],
+                    "product": updated_future_client_sale_tuple[2],
+                    "amount": updated_future_client_sale_tuple[3],
+                    "delivery_time": updated_future_client_sale_tuple[4],
+                    "comments": updated_future_client_sale_tuple[5]
+                }
+            }
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
 # ========================================================================== UPDATE CELL USERS
 @app.put("/update_user_name/")
 def update_user_name(user_id: int, name: str):
@@ -1796,6 +2214,7 @@ def update_share_weight(share_id: int, weight: float):
 @app.put("/update_share_price_per_kilo/")
 def update_share_price_per_kilo(share_id: int, price_per_kilo: int):
     return update_drivers_share_cell(share_id, 'price_per_kilo', price_per_kilo)
+
 # ========================================================================== UPDATE CELL HISTORY
 @app.put("/update_story_sale/")
 def update_story_sale(story_id: int, sale_id: int):
@@ -1820,3 +2239,163 @@ def update_story_price_per_kilo(story_id: int, price_per_kilo: float):
 @app.put("/update_story_total_price/")
 def update_story_total_price(story_id: int, total_price: float):
     return update_history_cell(story_id, 'total_price', total_price)
+
+# ========================================================================== UPDATE CELL CLIENTS FUTURE SALES
+@app.put("/update_future_sale_client/")
+def update_future_sale_client(f_sale_id: int, client_id: int):
+    return update_clients_sales_cell(f_sale_id, 'client', client_id)
+
+@app.put("/update_future_sale_product/")
+def update_future_sale_product(f_sale_id: int, product: str):
+    return update_clients_sales_cell(f_sale_id, 'product', product)
+
+@app.put("/update_future_sale_amount/")
+def update_future_sale_amount(f_sale_id: int, amount: int):
+    return update_clients_sales_cell(f_sale_id, 'amount', amount)
+
+@app.put("/update_future_sale_delivery_time/")
+def update_future_sale_delivery_time(f_sale_id: int, delivery_time: str):
+    return update_clients_sales_cell(f_sale_id, 'delivery_time', delivery_time)
+
+@app.put("/update_future_sale_comments/")
+def update_future_sale_comments(f_sale_id: int, comments: str):
+    return update_clients_sales_cell(f_sale_id, 'comments', comments)
+
+
+# ========================================================================== CHECK USER PW AND ROLE
+@app.get("/check_users_pw_and_role/")
+def check_users_pw_and_role(login: str, password: str, role: str):
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_users_info_by_login_sql = "select users.id,\
+                                              users.name,\
+                                              users.contacts,\
+                                              users.login,\
+                                              users.password,\
+                                              users_roles.is_admin,\
+                                              users_roles.is_driver,\
+                                              users_roles.is_operator,\
+                                              users_roles.is_superuser from users\
+                                              left join users_roles on\
+                                              users.id = users_roles.user_id where users.login=%s limit 1;"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_users_info_by_login_sql, (login,))
+
+        is_exist = cur.fetchone()
+
+        if not is_exist:
+            return {
+                "error": "user with this login doesn't exist"
+            }
+
+        is_correct_user = False
+
+        if is_exist[4] == password:
+            if role == "admin":
+                if is_exist[5] == "t":
+                    is_correct_user = True
+            elif role == "driver":
+                if is_exist[6] == "t":
+                    is_correct_user = True
+            elif role == "operator":
+                if is_exist[7] == "t":
+                    is_correct_user = True
+            elif role == "superuser":
+                if is_exist[8] == "t":
+                    is_correct_user = True
+
+
+        users_json = { "id": is_exist[0],
+                       "name": is_exist[1],
+                       "contacts": is_exist[2],
+                       "login": is_exist[3],
+                       "password": is_exist[4],
+                       "roles:": {
+                           "is_admin": is_exist[5],
+                           "is_driver": is_exist[6],
+                           "is_operator": is_exist[7],
+                           "is_superuser": is_exist[8]
+                       },
+                       "is_correct_user": is_correct_user }
+
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT USER BY LOGIN successfully")
+        
+        return {
+            "user": users_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_warehouse/")
+def get_warehouse():
+    conn = None
+    try:
+        params = config_database()
+
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+
+        get_warehouse_sql_2 = "select pp.id,\
+                                      p.id,\
+                                      p.name,\
+                                      p.contacts,\
+                                      p.comments,\
+                                      pp.product,\
+                                      coalesce((pp.amount - share.amount), 0) as remainder_amount,\
+                                      coalesce((pp.weight - share.weight), 0) as remainder_weight,\
+                                      pp.price_per_kilo from providers_purchases pp\
+                                        left join providers p on pp.provider = p.id\
+                                        left join (select ds.purchase_id, sum(ds.amount) as amount,\
+                                                   sum(ds.weight) as weight from drivers_share ds group by purchase_id)\
+                                        share on pp.id = share.purchase_id where (pp.amount - share.amount) > 0;"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_warehouse_sql_2)
+
+        warehouse_json = {product[0]: { "provider": {
+                                            "id": product[1],
+                                            "name": product[2],
+                                            "contacts": product[3],
+                                            "comments": product[4]
+                                        },
+                                        "product": product[5],
+                                        "amount": product[6],
+                                        "weight": product[7],
+                                        "price_per_kilo": product[8] } for product in cur}
+
+        cur.close()
+
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT WAREHOUSE successfully")
+
+        return {
+            "warehouse": warehouse_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
