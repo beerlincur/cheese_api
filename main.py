@@ -2299,16 +2299,16 @@ def check_users_pw_and_role(login: str, password: str, role: str):
 
         if is_exist[4] == password:
             if role == "admin":
-                if is_exist[5] == "t":
+                if is_exist[5]:
                     is_correct_user = True
             elif role == "driver":
-                if is_exist[6] == "t":
+                if is_exist[6]:
                     is_correct_user = True
             elif role == "operator":
-                if is_exist[7] == "t":
+                if is_exist[7]:
                     is_correct_user = True
             elif role == "superuser":
-                if is_exist[8] == "t":
+                if is_exist[8]:
                     is_correct_user = True
 
 
