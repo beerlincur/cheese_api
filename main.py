@@ -2361,7 +2361,8 @@ def get_warehouse():
                                       pp.product,\
                                       coalesce((pp.amount - share.amount), 0) as remainder_amount,\
                                       coalesce((pp.weight - share.weight), 0) as remainder_weight,\
-                                      pp.price_per_kilo from providers_purchases pp\
+                                      pp.price_per_kilo,\
+                                      pp.delivery_time from providers_purchases pp\
                                         left join providers p on pp.provider = p.id\
                                         left join (select ds.purchase_id, sum(ds.amount) as amount,\
                                                    sum(ds.weight) as weight from drivers_share ds group by purchase_id)\
@@ -2380,7 +2381,8 @@ def get_warehouse():
                                         "product": product[5],
                                         "amount": product[6],
                                         "weight": product[7],
-                                        "price_per_kilo": product[8] } for product in cur}
+                                        "price_per_kilo": product[8],
+                                        "delivery_time": product[9] } for product in cur}
 
         cur.close()
 
