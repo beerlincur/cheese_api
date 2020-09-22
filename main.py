@@ -2359,14 +2359,14 @@ def get_warehouse():
                                       p.contacts,\
                                       p.comments,\
                                       pp.product,\
-                                      coalesce((pp.amount - share.amount), 0) as remainder_amount,\
-                                      coalesce((pp.weight - share.weight), 0) as remainder_weight,\
+                                      coalesce((pp.amount - coalesce(share.amount, 0)), 0) as remainder_amount,\
+                                      coalesce((pp.weight - coalesce(share.weight, 0)), 0) as remainder_weight,\
                                       pp.price_per_kilo,\
                                       pp.delivery_time from providers_purchases pp\
                                         left join providers p on pp.provider = p.id\
-                                        left join (select ds.purchase_id, sum(ds.amount) as amount,\
-                                                   sum(ds.weight) as weight from drivers_share ds group by purchase_id)\
-                                        share on pp.id = share.purchase_id where (pp.amount - share.amount) > 0;"
+                                        left join (select ds.purchase_id, coalesce(sum(ds.amount), 0) as amount,\
+                                                   coalesce(sum(ds.weight), 0) as weight from drivers_share ds group by purchase_id)\
+                                        share on pp.id = share.purchase_id where (pp.amount - coalesce(share.amount, 0)) > 0;"
 
         cur.itersize = 200
                                                 
