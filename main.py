@@ -725,19 +725,20 @@ def get_all_purchases():
         purchases_json = {purchase[0]: { "order_time": purchase[1],
                                          "delivery_time": purchase[2],
                                          "provider": {
-                                             "name": purchase[3],
-                                             "contacts": purchase[4],
-                                             "comments": purchase[5]
+                                             "id": purchase[3],
+                                             "name": purchase[4],
+                                             "contacts": purchase[5],
+                                             "comments": purchase[6]
                                          },
-                                         "product": purchase[6],
-                                         "amount": purchase[7],
-                                         "weight": purchase[8],
-                                         "price_per_kilo": purchase[9],
-                                         "total_price": purchase[10],
-                                         "paid": purchase[11],
-                                         "debt": purchase[12],
-                                         "comments": purchase[13],
-                                         "status": purchase[14] } for purchase in cur}
+                                         "product": purchase[7],
+                                         "amount": purchase[8],
+                                         "weight": purchase[9],
+                                         "price_per_kilo": purchase[10],
+                                         "total_price": purchase[11],
+                                         "paid": purchase[12],
+                                         "debt": purchase[13],
+                                         "comments": purchase[14],
+                                         "status": purchase[15] } for purchase in cur}
 
         cur.close()
 
