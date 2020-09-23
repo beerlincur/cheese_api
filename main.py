@@ -287,7 +287,7 @@ def create_new_purchase(order_time: str,
         logging.info(f"{current_time}---NEW PURCHASE | prod: {product} | prov: {provider_id} created successfully")
 
         return {
-            "new_purhcase": {
+            "new_purchase": {
                 "order_time": order_time,
                 "delivery_time": delivery_time,
                 "provider": provider_id,
@@ -722,23 +722,22 @@ def get_all_purchases():
                                                 
         cur.execute(get_all_purchases_sql)
 
-        purchases_json = {purchase[0]: { "purchase_id": purchase[1],
-                                         "order_time": purchase[2],
-                                         "delivery_time": purchase[3],
+        purchases_json = {purchase[0]: { "order_time": purchase[1],
+                                         "delivery_time": purchase[2],
                                          "provider": {
-                                             "name": purchase[4],
-                                             "contacts": purchase[5],
-                                             "comments": purchase[6]
+                                             "name": purchase[3],
+                                             "contacts": purchase[4],
+                                             "comments": purchase[5]
                                          },
-                                         "product": purchase[7],
-                                         "amount": purchase[8],
-                                         "weight": purchase[9],
-                                         "price_per_kilo": purchase[10],
-                                         "total_price": purchase[11],
-                                         "paid": purchase[12],
-                                         "debt": purchase[13],
-                                         "comments": purchase[14],
-                                         "status": purchase[15] } for purchase in cur}
+                                         "product": purchase[6],
+                                         "amount": purchase[7],
+                                         "weight": purchase[8],
+                                         "price_per_kilo": purchase[9],
+                                         "total_price": purchase[10],
+                                         "paid": purchase[11],
+                                         "debt": purchase[12],
+                                         "comments": purchase[13],
+                                         "status": purchase[14] } for purchase in cur}
 
         cur.close()
 
