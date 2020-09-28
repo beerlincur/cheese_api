@@ -55,7 +55,6 @@ CREATE TABLE "providers" (
 
 CREATE TABLE "clients_sales" (
 	"id" serial NOT NULL,
-	"order_time" TIMESTAMP NOT NULL,
 	"delivery_time" TIMESTAMP NOT NULL,
 	"client" integer NOT NULL,
 	"provider" integer NOT NULL,
@@ -73,7 +72,6 @@ CREATE TABLE "clients_sales" (
 
 CREATE TABLE "providers_purchases" (
 	"id" serial NOT NULL,
-	"order_time" TIMESTAMP NOT NULL,
 	"delivery_time" TIMESTAMP NOT NULL,
 	"provider" integer NOT NULL,
 	"product" character varying(255) NOT NULL,
@@ -142,6 +140,7 @@ CREATE TABLE "clients_future_sales" (
 	"client" integer NOT NULL,
 	"product" character varying(255) NOT NULL,
 	"amount" integer NOT NULL,
+	"order_time" TIMESTAMP NOT NULL,
 	"delivery_time" TIMESTAMP NOT NULL,
 	"comments" TEXT NOT NULL,
 	CONSTRAINT "clients_future_sales_pk" PRIMARY KEY ("id")

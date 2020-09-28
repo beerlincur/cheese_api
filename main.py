@@ -228,19 +228,18 @@ def create_new_client(name: str,
 
 
 @app.post("/create_purchase/")
-def create_new_purchase(order_time: str, 
-                        delivery_time: str, 
-                        provider_id: str, 
-                        product: str, 
-                        amount: int, 
-                        weight: float, 
-                        price_per_kilo: float,
-                        status: str,
-                        total_price: Optional[float] = None,
-                        paid: Optional[float] = None,
-                        debt: Optional[float] = None,
-                        comments: Optional[str] = ""
-                        ):
+def create_new_purchase( delivery_time: str, 
+                         provider_id: str, 
+                         product: str, 
+                         amount: int, 
+                         weight: float, 
+                         price_per_kilo: float,
+                         status: str,
+                         total_price: Optional[float] = None,
+                         paid: Optional[float] = None,
+                         debt: Optional[float] = None,
+                         comments: Optional[str] = ""
+                         ):
     conn = None
     try:
         params = config_database()
@@ -252,8 +251,7 @@ def create_new_purchase(order_time: str,
         paid = 0 if not paid else paid
         debt = total_price if not debt else debt
 
-        create_purchase_sql = "insert into providers_purchases ( order_time,\
-                                                                 delivery_time,\
+        create_purchase_sql = "insert into providers_purchases ( delivery_time,\
                                                                  provider,\
                                                                  product,\
                                                                  amount,\
@@ -264,10 +262,9 @@ def create_new_purchase(order_time: str,
                                                                  debt,\
                                                                  comments,\
                                                                  status )\
-                                                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                                                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
                                                 
-        cur.execute(create_purchase_sql, ( order_time, # 1999-01-08 04:05:06 timestamp input format
-                                           delivery_time, # 1999-01-08 04:05:06
+        cur.execute(create_purchase_sql, ( delivery_time, # 1999-01-08 04:05:06
                                            provider_id, 
                                            product, 
                                            amount, 
@@ -288,7 +285,6 @@ def create_new_purchase(order_time: str,
 
         return {
             "new_purchase": {
-                "order_time": order_time,
                 "delivery_time": delivery_time,
                 "provider": provider_id,
                 "product": product,
@@ -312,16 +308,15 @@ def create_new_purchase(order_time: str,
 
 
 @app.post("/create_sale/")
-def create_new_sale(order_time: str, 
-                    delivery_time: str,
-                    client_id: str,
-                    provider_id: str,
-                    driver_id: str, 
-                    status: str,
-                    paid: float,
-                    debt: float,
-                    comments: Optional[str] = ""
-                    ):
+def create_new_sale( delivery_time: str,
+                     client_id: str,
+                     provider_id: str,
+                     driver_id: str, 
+                     status: str,
+                     paid: float,
+                     debt: float,
+                     comments: Optional[str] = ""
+                     ):
     conn = None
     try:
         params = config_database()
@@ -329,18 +324,16 @@ def create_new_sale(order_time: str,
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
 
-        create_sale_sql = "insert into clients_sales ( order_time,\
-                                                       delivery_time,\
+        create_sale_sql = "insert into clients_sales ( delivery_time,\
                                                        client,\
                                                        provider,\
                                                        driver,\
                                                        paid,\
                                                        debt,\
                                                        comments,\
-                                                       status ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                                                       status ) values (%s, %s, %s, %s, %s, %s, %s, %s);"
                                                 
-        cur.execute(create_sale_sql, ( order_time,
-                                       delivery_time,
+        cur.execute(create_sale_sql, ( delivery_time,
                                        client_id,
                                        provider_id,
                                        driver_id,
@@ -358,7 +351,6 @@ def create_new_sale(order_time: str,
 
         return {
             "new_sale": {
-                "order_time": order_time,
                 "delivery_time": delivery_time,
                 "client": client_id,
                 "provider": provider_id,
@@ -491,6 +483,7 @@ def create_new_story(sale_id: int,
 def create_clients_future_sale(client_id: int, 
                                product: str,
                                amount: int,
+                               order_time: str,
                                delivery_time: str,
                                comments: Optional[str] = ""
                                ):
@@ -504,12 +497,14 @@ def create_clients_future_sale(client_id: int,
         create_future_sale_sql = "insert into clients_future_sales ( client,\
                                                                      product,\
                                                                      amount,\
+                                                                     order_time,\
                                                                      delivery_time,\
-                                                                     comments) values (%s, %s, %s, %s, %s);"
+                                                                     comments) values (%s, %s, %s, %s, %s, %s);"
                                                 
         cur.execute(create_future_sale_sql, ( client_id,
                                               product,
                                               amount,
+                                              order_time,
                                               delivery_time,
                                               comments))
 
@@ -525,6 +520,7 @@ def create_clients_future_sale(client_id: int,
                 "client_id": client_id,
                 "product": product,
                 "amount": amount,
+                "order_time": order_time,
                 "delivery_time": delivery_time,
                 "comments": comments
             } 
@@ -701,7 +697,6 @@ def get_all_purchases():
         cur = conn.cursor()
 
         get_all_purchases_sql = "select providers_purchases.id,\
-                                      order_time,\
                                       delivery_time,\
                                       providers.id,\
                                       providers.name,\
@@ -722,23 +717,22 @@ def get_all_purchases():
                                                 
         cur.execute(get_all_purchases_sql)
 
-        purchases_json = {purchase[0]: { "order_time": purchase[1],
-                                         "delivery_time": purchase[2],
+        purchases_json = {purchase[0]: { "delivery_time": purchase[1],
                                          "provider": {
-                                             "id": purchase[3],
-                                             "name": purchase[4],
-                                             "contacts": purchase[5],
-                                             "comments": purchase[6]
+                                             "id": purchase[2],
+                                             "name": purchase[3],
+                                             "contacts": purchase[4],
+                                             "comments": purchase[5]
                                          },
-                                         "product": purchase[7],
-                                         "amount": purchase[8],
-                                         "weight": purchase[9],
-                                         "price_per_kilo": purchase[10],
-                                         "total_price": purchase[11],
-                                         "paid": purchase[12],
-                                         "debt": purchase[13],
-                                         "comments": purchase[14],
-                                         "status": purchase[15] } for purchase in cur}
+                                         "product": purchase[6],
+                                         "amount": purchase[7],
+                                         "weight": purchase[8],
+                                         "price_per_kilo": purchase[9],
+                                         "total_price": purchase[10],
+                                         "paid": purchase[11],
+                                         "debt": purchase[12],
+                                         "comments": purchase[13],
+                                         "status": purchase[14] } for purchase in cur}
 
         cur.close()
 
@@ -769,7 +763,6 @@ def get_all_sales():
         cur = conn.cursor()
 
         get_all_sales_sql = "select cs.id,\
-                                    cs.order_time,\
                                     cs.delivery_time,\
                                     s_client.id,\
                                     s_client.name,\
@@ -814,50 +807,49 @@ def get_all_sales():
         cur.execute(get_all_sales_sql)
 
         sales_json = {sale[0]: { 
-            "order_time": sale[1],
-            "delivery_time": sale[2],
+            "delivery_time": sale[1],
             "client": {
-                "id": sale[3],
-                "name": sale[4],
-                "entity": sale[5],
-                "address": sale[6],
-                "address_comments": sale[7],
-                "network": sale[8],
-                "payment": sale[9],
-                "default_provider_id": sale[10],
+                "id": sale[2],
+                "name": sale[3],
+                "entity": sale[4],
+                "address": sale[5],
+                "address_comments": sale[6],
+                "network": sale[7],
+                "payment": sale[8],
+                "default_provider_id": sale[9],
                 "default_provider": {
-                    "id": sale[11],
-                    "name": sale[12],
-                    "contacts": sale[13],
-                    "comments": sale[14]
+                    "id": sale[10],
+                    "name": sale[11],
+                    "contacts": sale[12],
+                    "comments": sale[13]
                 },
-                "recoil": sale[15],
-                "comments": sale[16],
+                "recoil": sale[14],
+                "comments": sale[15],
                 "work_hours": {
-                    "monday": sale[17],
-                    "tuesday": sale[18],
-                    "wednesday": sale[19],
-                    "thursday": sale[20],
-                    "friday": sale[21],
-                    "saturday": sale[22],
-                    "sunday": sale[23]
+                    "monday": sale[16],
+                    "tuesday": sale[17],
+                    "wednesday": sale[18],
+                    "thursday": sale[19],
+                    "friday": sale[20],
+                    "saturday": sale[21],
+                    "sunday": sale[22]
                 }
             },
             "provider": {
-                "id": sale[24],
-                "name": sale[25],
-                "contacts": sale[26],
-                "comments": sale[27]
+                "id": sale[23],
+                "name": sale[24],
+                "contacts": sale[25],
+                "comments": sale[26]
             },
             "driver": {
-                "id": sale[28],
-                "name": sale[29],
-                "contacts": sale[30]
+                "id": sale[27],
+                "name": sale[28],
+                "contacts": sale[39]
             },
-            "paid": sale[31],
-            "debt": sale[32],
-            "comments": sale[33],
-            "status": sale[34]
+            "paid": sale[30],
+            "debt": sale[31],
+            "comments": sale[32],
+            "status": sale[33]
         } for sale in cur}
 
         cur.close()
@@ -893,7 +885,6 @@ def get_all_shares():
                                     dr.name,\
                                     dr.contacts,\
                                     pp.id,\
-                                    pp.order_time,\
                                     pp.delivery_time,\
                                     pr.id,\
                                     pr.name,\
@@ -927,27 +918,26 @@ def get_all_shares():
             },
             "purchase": {
                 "id": share[4],
-                "order_time": share[5],
-                "delivery_time": share[6],
+                "delivery_time": share[5],
                 "provider": {
-                    "id": share[7],
-                    "name": share[8],
-                    "contacts": share[9],
-                    "comments": share[10]
+                    "id": share[6],
+                    "name": share[7],
+                    "contacts": share[8],
+                    "comments": share[9]
                 },
-                "product": share[11],
-                "amount": share[12],
-                "weight": share[13],
-                "price_per_kilo": share[14],
-                "total_price": share[15],
-                "paid": share[16],
-                "debt": share[17],
-                "comments": share[18],
-                "status": share[19]
+                "product": share[10],
+                "amount": share[11],
+                "weight": share[12],
+                "price_per_kilo": share[13],
+                "total_price": share[14],
+                "paid": share[15],
+                "debt": share[16],
+                "comments": share[17],
+                "status": share[18]
             },
-            "amount": share[20],
-            "weight": share[21],
-            "price_per_kilo": share[22]
+            "amount": share[19],
+            "weight": share[20],
+            "price_per_kilo": share[21]
         } for share in cur}
 
         cur.close()
@@ -980,7 +970,6 @@ def get_all_history():
 
         get_all_history_sql = "select h.id,\
                                     cs.id,\
-                                    cs.order_time,\
                                     cs.delivery_time,\
                                     s_client.id,\
                                     s_client.name,\
@@ -1019,7 +1008,6 @@ def get_all_history():
                                     dr.name,\
                                     dr.contacts,\
                                     pp.id,\
-                                    pp.order_time,\
                                     pp.delivery_time,\
                                     pr.id,\
                                     pr.name,\
@@ -1059,86 +1047,84 @@ def get_all_history():
         history_json = {story[0]: { 
             "sale": {
                 "id": story[1],
-                "order_time": story[2],
-                "delivery_time": story[3],
+                "delivery_time": story[2],
                 "client": {
-                    "id": story[4],
-                    "name": story[5],
-                    "entity": story[6],
-                    "address": story[7],
-                    "address_comments": story[8],
-                    "network": story[9],
-                    "payment": story[10],
-                    "default_provider_id": story[11],
+                    "id": story[3],
+                    "name": story[4],
+                    "entity": story[5],
+                    "address": story[6],
+                    "address_comments": story[7],
+                    "network": story[8],
+                    "payment": story[9],
+                    "default_provider_id": story[10],
                     "default_provider": {
-                        "id": story[12],
-                        "name": story[13],
-                        "contacts": story[14],
-                        "comments": story[15]
+                        "id": story[11],
+                        "name": story[12],
+                        "contacts": story[13],
+                        "comments": story[14]
                     },
-                    "recoil": story[16],
-                    "comments": story[17],
+                    "recoil": story[15],
+                    "comments": story[16],
                     "work_hours": {
-                        "monday": story[18],
-                        "tuesday": story[19],
-                        "wednesday": story[20],
-                        "thursday": story[21],
-                        "friday": story[22],
-                        "saturday": story[23],
-                        "sunday": story[24]
+                        "monday": story[17],
+                        "tuesday": story[18],
+                        "wednesday": story[19],
+                        "thursday": story[20],
+                        "friday": story[21],
+                        "saturday": story[22],
+                        "sunday": story[23]
                     }
                 },
                 "provider": {
-                    "id": story[25],
-                    "name": story[26],
-                    "contacts": story[27],
-                    "comments": story[28]
+                    "id": story[24],
+                    "name": story[25],
+                    "contacts": story[26],
+                    "comments": story[27]
                 },
                 "driver": {
-                    "id": story[29],
-                    "name": story[30],
-                    "contacts": story[31]
+                    "id": story[28],
+                    "name": story[29],
+                    "contacts": story[30]
                 },
-                "paid": story[32],
-                "debt": story[33],
-                "comments": story[34],
-                "status": story[35]
+                "paid": story[31],
+                "debt": story[32],
+                "comments": story[33],
+                "status": story[34]
             },
             "share": {
-                "id": story[36], 
+                "id": story[35], 
                 "driver": {
-                    "id": story[37],
-                    "name": story[38],
-                    "contacts": story[39]
+                    "id": story[36],
+                    "name": story[37],
+                    "contacts": story[38]
                 },
                 "purchase": {
-                    "id": story[40],
-                    "order_time": story[41],
-                    "delivery_time": story[42],
+                    "id": story[39],
+                    "delivery_time": story[40],
                     "provider": {
-                        "id": story[43],
-                        "name": story[44],
-                        "contacts": story[45],
-                        "comments": story[46]
+                        "id": story[41],
+                        "name": story[42],
+                        "contacts": story[43],
+                        "comments": story[44]
                     },
-                    "product": story[47],
-                    "amount": story[48],
-                    "weight": story[49],
-                    "price_per_kilo": story[50],
-                    "total_price": story[51],
-                    "paid": story[52],
-                    "debt": story[53],
-                    "comments": story[54],
-                    "status": story[55]
+                    "product": story[45],
+                    "amount": story[46],
+                    "weight": story[47],
+                    "price_per_kilo": story[48],
+                    "total_price": story[49],
+                    "paid": story[50],
+                    "debt": story[51],
+                    "comments": story[52],
+                    "status": story[53]
                 },
-                "amount": story[56],
-                "weight": story[57],
-                "price_per_kilo": story[58]
+                "amount": story[54],
+                "weight": story[55],
+                "price_per_kilo": story[56]
             },
-            "amount": story[59],
-            "weight": story[60],
-            "price_per_kilo": story[61],
-            "total_price": story[62]
+            "amount": story[57],
+            "weight": story[58],
+            "price_per_kilo": story[59],
+            "total_price": story[60]
         } for story in cur}
 
         cur.close()
@@ -1422,6 +1408,7 @@ def get_all_future_sales():
                                             cwh.sunday,\
                                             cfs.product,\
                                             cfs.amount,\
+                                            cfs.order_time,\
                                             cfs.delivery_time,\
                                             cfs.comments from clients_future_sales cfs\
                                             left join clients c on cfs.client = c.id\
@@ -1461,8 +1448,9 @@ def get_all_future_sales():
             },
             "product": sale[21],
             "amount": sale[22],
-            "delivery_time": sale[23],
-            "comments": sale[24]
+            "order_time": sale[23],
+            "delivery_time": sale[24],
+            "comments": sale[25]
         } for sale in cur}
         
         cur.close()
@@ -1770,18 +1758,17 @@ def update_providers_purchases_cell(purchase_id: int,
         return {
             "updated_provider_purchase": {
                 updated_pp_tuple[0]: {
-                    "order_time": updated_pp_tuple[1],
-                    "delivery_time": updated_pp_tuple[2],
-                    "provider": updated_pp_tuple[3],
-                    "product": updated_pp_tuple[4],
-                    "amount": updated_pp_tuple[5],
-                    "weight": updated_pp_tuple[6],
-                    "price_per_kilo": updated_pp_tuple[7],
-                    "total_price": updated_pp_tuple[8],
-                    "paid": updated_pp_tuple[9],
-                    "debt": updated_pp_tuple[10],
-                    "comments": updated_pp_tuple[11],
-                    "status": updated_pp_tuple[12]
+                    "delivery_time": updated_pp_tuple[1],
+                    "provider": updated_pp_tuple[2],
+                    "product": updated_pp_tuple[3],
+                    "amount": updated_pp_tuple[4],
+                    "weight": updated_pp_tuple[5],
+                    "price_per_kilo": updated_pp_tuple[6],
+                    "total_price": updated_pp_tuple[7],
+                    "paid": updated_pp_tuple[8],
+                    "debt": updated_pp_tuple[9],
+                    "comments": updated_pp_tuple[10],
+                    "status": updated_pp_tuple[11]
                 }
             }
         }
@@ -1827,15 +1814,14 @@ def update_clients_sales_cell(sale_id: int,
         return {
             "updated_client_sale": {
                 updated_sale_tuple[0]: {
-                    "order_time": updated_sale_tuple[1],
-                    "delivery_time": updated_sale_tuple[2],
-                    "client": updated_sale_tuple[3],
-                    "provider": updated_sale_tuple[4],
-                    "driver": updated_sale_tuple[5],
-                    "paid": updated_sale_tuple[6],
-                    "debt": updated_sale_tuple[7],
-                    "comments": updated_sale_tuple[8],
-                    "status": updated_sale_tuple[9]
+                    "delivery_time": updated_sale_tuple[1],
+                    "client": updated_sale_tuple[2],
+                    "provider": updated_sale_tuple[3],
+                    "driver": updated_sale_tuple[4],
+                    "paid": updated_sale_tuple[5],
+                    "debt": updated_sale_tuple[6],
+                    "comments": updated_sale_tuple[7],
+                    "status": updated_sale_tuple[8]
                 }
             }
         }
@@ -1949,10 +1935,10 @@ def update_history_cell(story_id: int,
             conn.close()
 
 
-@app.put("/update_future_clients_sales_cell/")
-def update_clients_sales_cell(sale_id: int,
-                              column: str,
-                              new_value: Any):
+@app.put("/update_clients_future_sales_cell/")
+def update_clients_future_sales_cell(sale_id: int,
+                                     column: str,
+                                     new_value: Any):
     conn = None
     try:
         if column == 'id':
@@ -1965,12 +1951,12 @@ def update_clients_sales_cell(sale_id: int,
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         
-        update_future_client_sale_cell_sql = \
-            SQL("update future_clients_sales set {} = %s where id = %s returning *;").format(Identifier(column))
+        update_clients_future_sales_cell_sql = \
+            SQL("update clients_future_sales set {} = %s where id = %s returning *;").format(Identifier(column))
                                                 
-        cur.execute(update_future_client_sale_cell_sql, (new_value, sale_id))
+        cur.execute(update_clients_future_sales_cell_sql, (new_value, sale_id))
 
-        updated_future_client_sale_tuple = cur.fetchone()
+        updated_clients_future_sales_tuple = cur.fetchone()
 
         cur.close()
         
@@ -1981,12 +1967,13 @@ def update_clients_sales_cell(sale_id: int,
         
         return {
             "updated_future_client_sale": {
-                updated_sale_tuple[0]: {
-                    "client": updated_future_client_sale_tuple[1],
-                    "product": updated_future_client_sale_tuple[2],
-                    "amount": updated_future_client_sale_tuple[3],
-                    "delivery_time": updated_future_client_sale_tuple[4],
-                    "comments": updated_future_client_sale_tuple[5]
+                updated_clients_future_sales_tuple[0]: {
+                    "client": updated_clients_future_sales_tuple[1],
+                    "product": updated_clients_future_sales_tuple[2],
+                    "amount": updated_clients_future_sales_tuple[3],
+                    "order_time": updated_clients_future_sales_tuple[4],
+                    "delivery_time": updated_clients_future_sales_tuple[5],
+                    "comments": updated_clients_future_sales_tuple[6]
                 }
             }
         }
@@ -2111,9 +2098,6 @@ def update_client_wh_saturday(client_id: int, saturday: str):
 def update_client_wh_sunday(client_id: int, sunday: str):
     return update_clients_work_hours_cell(client_id, 'sunday', sunday)
 # ========================================================================== UPDATE CELL PROVIDERS_PURCHASES
-@app.put("/update_purchase_order_time/")
-def update_purchase_order_time(purchase_id: int, order_time: str):
-    return update_providers_purchases_cell(purchase_id, 'order_time', order_time)
 
 @app.put("/update_purchase_delivery_time/")
 def update_purchase_delivery_time(purchase_id: int, delivery_time: str):
@@ -2159,9 +2143,6 @@ def update_purchase_comments(purchase_id: int, comments: str):
 def update_purchase_status(purchase_id: int, status: str):
     return update_providers_purchases_cell(purchase_id, 'status', status)
 # ========================================================================== UPDATE CELL CLIENTS_SALES
-@app.put("/update_sale_order_time/")
-def update_sale_order_time(sale_id: int, order_time: str):
-    return update_clients_sales_cell(sale_id, 'order_time', order_time)
 
 @app.put("/update_sale_delivery_time/")
 def update_sale_delivery_time(sale_id: int, delivery_time: str):
@@ -2243,23 +2224,27 @@ def update_story_total_price(story_id: int, total_price: float):
 # ========================================================================== UPDATE CELL CLIENTS FUTURE SALES
 @app.put("/update_future_sale_client/")
 def update_future_sale_client(f_sale_id: int, client_id: int):
-    return update_clients_sales_cell(f_sale_id, 'client', client_id)
+    return update_clients_future_sales_cell(f_sale_id, 'client', client_id)
 
 @app.put("/update_future_sale_product/")
 def update_future_sale_product(f_sale_id: int, product: str):
-    return update_clients_sales_cell(f_sale_id, 'product', product)
+    return update_clients_future_sales_cell(f_sale_id, 'product', product)
 
 @app.put("/update_future_sale_amount/")
 def update_future_sale_amount(f_sale_id: int, amount: int):
-    return update_clients_sales_cell(f_sale_id, 'amount', amount)
+    return update_clients_future_sales_cell(f_sale_id, 'amount', amount)
+
+@app.put("/update_future_sale_order_time/")
+def update_future_sale_order_time(f_sale_id: int, order_time: str):
+    return update_clients_future_sales_cell(f_sale_id, 'order_time', order_time)
 
 @app.put("/update_future_sale_delivery_time/")
 def update_future_sale_delivery_time(f_sale_id: int, delivery_time: str):
-    return update_clients_sales_cell(f_sale_id, 'delivery_time', delivery_time)
+    return update_clients_future_sales_cell(f_sale_id, 'delivery_time', delivery_time)
 
 @app.put("/update_future_sale_comments/")
 def update_future_sale_comments(f_sale_id: int, comments: str):
-    return update_clients_sales_cell(f_sale_id, 'comments', comments)
+    return update_clients_future_sales_cell(f_sale_id, 'comments', comments)
 
 
 # ========================================================================== CHECK USER PW AND ROLE
