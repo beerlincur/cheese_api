@@ -844,7 +844,7 @@ def get_all_sales():
             "driver": {
                 "id": sale[27],
                 "name": sale[28],
-                "contacts": sale[39]
+                "contacts": sale[29]
             },
             "paid": sale[30],
             "debt": sale[31],
