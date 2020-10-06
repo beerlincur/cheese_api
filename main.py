@@ -1809,6 +1809,12 @@ def get_all_clients_prices():
                                              s_client.network,\
                                              s_client.payment,\
                                              s_client.default_provider,\
+                                             def_prov.id,\
+                                             def_prov.name,\
+                                             def_prov.contacts,\
+                                             def_prov.comments,\
+                                             s_client.recoil,\
+                                             s_client.comments,\
                                              cwh.monday,\
                                              cwh.tuesday,\
                                              cwh.wednesday,\
@@ -1816,12 +1822,6 @@ def get_all_clients_prices():
                                              cwh.friday,\
                                              cwh.saturday,\
                                              cwh.sunday,\
-                                             def_prov.id,\
-                                             def_prov.name,\
-                                             def_prov.contacts,\
-                                             def_prov.comments,\
-                                             s_client.recoil,\
-                                             s_client.comments,\
                                              cp.price from clients_prices cp\
                                              left join clients s_client on cp.client_id = s_client.id\
                                              left join clients_work_hours cwh on cp.client_id = cwh.client_id\
