@@ -805,21 +805,21 @@ def get_all_purchases(provider_id: Optional[int] = None, product_name: Optional[
 
         is_already_one_filter = False
 
-        if provider_id or product_name or status:
+        if (provider_id is not None) or (product_name is not None) or (status is not None):
             filter_str = " where "
         
-            if provider_id:
+            if provider_id is not None:
                 is_already_one_filter = True
                 filter_str += r"providers.id = %s"
             
-            if product_name:
+            if product_name is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
                 is_already_one_filter = True
                 filter_str += r"product = %s"
             
-            if status:
+            if status is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
@@ -847,13 +847,13 @@ def get_all_purchases(provider_id: Optional[int] = None, product_name: Optional[
 
         parametrs_to_cur = []
 
-        if provider_id:
+        if provider_id is not None:
             parametrs_to_cur.append(provider_id)
         
-        if product_name:
+        if product_name is not None:
             parametrs_to_cur.append(product_name)
         
-        if status:
+        if status is not None:
             parametrs_to_cur.append(status)
 
         cur.execute(get_all_purchases_sql, tuple(parametrs_to_cur))           
@@ -907,21 +907,21 @@ def get_all_sales(driver_id: Optional[int] = None, client_id: Optional[int] = No
 
         is_already_one_filter = False
 
-        if driver_id or client_id or status:
+        if (driver_id is not None) or (client_id is not None) or (status is not None):
             filter_str = " where "
         
-            if driver_id:
+            if driver_id is not None:
                 is_already_one_filter = True
                 filter_str += r"s_driver.id = %s"
             
-            if client_id:
+            if client_id is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
                 is_already_one_filter = True
                 filter_str += r"s_client.id = %s"
             
-            if status:
+            if status is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
@@ -972,13 +972,13 @@ def get_all_sales(driver_id: Optional[int] = None, client_id: Optional[int] = No
 
         parametrs_to_cur = []
 
-        if driver_id:
+        if driver_id is not None:
             parametrs_to_cur.append(driver_id)
         
-        if client_id:
+        if client_id is not None:
             parametrs_to_cur.append(client_id)
         
-        if status:
+        if status is not None:
             parametrs_to_cur.append(status)
 
         cur.execute(get_all_sales_sql, tuple(parametrs_to_cur))
@@ -1062,21 +1062,21 @@ def get_all_shares(driver_id: Optional[int] = None, purchase_id: Optional[int] =
 
         is_already_one_filter = False
 
-        if driver_id or purchase_id or status:
+        if (driver_id is not None) or (purchase_id is not None) or (status is not None):
             filter_str = " where "
         
-            if driver_id:
+            if driver_id is not None:
                 is_already_one_filter = True
                 filter_str += r"dr.id = %s"
             
-            if purchase_id:
+            if purchase_id is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
                 is_already_one_filter = True
                 filter_str += r"pp.id = %s"
             
-            if status:
+            if status is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
@@ -1114,13 +1114,13 @@ def get_all_shares(driver_id: Optional[int] = None, purchase_id: Optional[int] =
 
         parametrs_to_cur = []
 
-        if driver_id:
+        if driver_id is not None:
             parametrs_to_cur.append(driver_id)
         
-        if purchase_id:
+        if purchase_id is not None:
             parametrs_to_cur.append(purchase_id)
         
-        if status:
+        if status is not None:
             parametrs_to_cur.append(status)
 
         cur.execute(get_all_share_sql, tuple(parametrs_to_cur))
@@ -1188,21 +1188,21 @@ def get_all_history(client_id: Optional[int] = None, driver_id: Optional[int] = 
 
         is_already_one_filter = False
 
-        if client_id or driver_id or provider_id:
+        if (client_id is not None) or (driver_id is not None) or (provider_id is not None):
             filter_str = " where "
         
-            if client_id:
+            if client_id is not None:
                 is_already_one_filter = True
                 filter_str += r"s_client.id = %s"
             
-            if driver_id:
+            if driver_id is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
                 is_already_one_filter = True
                 filter_str += r"dr.id = %s"
             
-            if provider_id:
+            if provider_id is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
@@ -1286,13 +1286,13 @@ def get_all_history(client_id: Optional[int] = None, driver_id: Optional[int] = 
 
         parametrs_to_cur = []
 
-        if client_id:
+        if client_id is not None:
             parametrs_to_cur.append(client_id)
         
-        if driver_id:
+        if driver_id is not None:
             parametrs_to_cur.append(driver_id)
         
-        if provider_id:
+        if provider_id is not None:
             parametrs_to_cur.append(provider_id)
 
         cur.execute(get_all_history_sql, tuple(parametrs_to_cur))
@@ -1643,14 +1643,14 @@ def get_all_future_sales(client_id: Optional[int] = None, status: Optional[str] 
 
         is_already_one_filter = False
 
-        if client_id or status:
+        if (client_id is not None) or (status is not None):
             filter_str = " where "
             
-            if client_id:
+            if client_id is not None:
                 is_already_one_filter = True
                 filter_str += r"c.id = %s"
             
-            if status:
+            if status is not None:
                 if is_already_one_filter:
                     filter_str += " and "
                 
@@ -1692,10 +1692,10 @@ def get_all_future_sales(client_id: Optional[int] = None, status: Optional[str] 
                                                 
         parametrs_to_cur = []
     
-        if client_id:
+        if client_id is not None:
             parametrs_to_cur.append(client_id)
         
-        if status:
+        if status is not None:
             parametrs_to_cur.append(status)
 
         cur.execute(get_all_cfuture_sales_sql, tuple(parametrs_to_cur))
@@ -1799,15 +1799,67 @@ def get_all_clients_prices():
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         
-        get_all_clients_prices_sql = "select id, product_name, client_id, price from clients_prices;"
+        get_all_clients_prices_sql = "select cp.id, \
+                                             cp.product_name,\
+                                             s_client.id,\
+                                             s_client.name,\
+                                             s_client.entity,\
+                                             s_client.address,\
+                                             s_client.address_comments,\
+                                             s_client.network,\
+                                             s_client.payment,\
+                                             s_client.default_provider,\
+                                             cwh.monday,\
+                                             cwh.tuesday,\
+                                             cwh.wednesday,\
+                                             cwh.thursday,\
+                                             cwh.friday,\
+                                             cwh.saturday,\
+                                             cwh.sunday,\
+                                             def_prov.id,\
+                                             def_prov.name,\
+                                             def_prov.contacts,\
+                                             def_prov.comments,\
+                                             s_client.recoil,\
+                                             s_client.comments,\
+                                             cp.price from clients_prices cp\
+                                             left join clients s_client on cp.client_id = s_client.id\
+                                             left join clients_work_hours cwh on cp.client_id = cwh.client_id\
+                                             left join providers def_prov on s_client.default_provider = def_prov.id;"
 
         cur.itersize = 200
                                                 
         cur.execute(get_all_clients_prices_sql)
 
         clients_prices_json = {client_price[0]: { "product_name": client_price[1],
-                                                  "client_id": client_price[2],
-                                                  "price": client_price[3] } for client_price in cur}
+                                                  "client": {
+                                                        "id": client_price[2],
+                                                        "name": client_price[3],
+                                                        "entity": client_price[4],
+                                                        "address": client_price[5],
+                                                        "address_comments": client_price[6],
+                                                        "network": client_price[7],
+                                                        "payment": client_price[8],
+                                                        "default_provider_id": client_price[9],
+                                                        "default_provider": {
+                                                            "id": client_price[10],
+                                                            "name": client_price[11],
+                                                            "contacts": client_price[12],
+                                                            "comments": client_price[13]
+                                                        },
+                                                        "recoil": client_price[14],
+                                                        "comments": client_price[15],
+                                                        "work_hours": {
+                                                            "monday": client_price[16],
+                                                            "tuesday": client_price[17],
+                                                            "wednesday": client_price[18],
+                                                            "thursday": client_price[19],
+                                                            "friday": client_price[20],
+                                                            "saturday": client_price[21],
+                                                            "sunday": client_price[22]
+                                                        }
+                                                  },
+                                                  "price": client_price[23] } for client_price in cur}
         
         cur.close()
         
