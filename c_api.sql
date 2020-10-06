@@ -1,6 +1,6 @@
 CREATE TABLE "users" (
 	"id" serial NOT NULL,
-	"name" character varying(32) NOT NULL,
+	"name" character varying(255) NOT NULL,
 	"contacts" character varying(255) NOT NULL,
 	"login" character varying(255) NOT NULL,
 	"password" character varying(255) NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE "users_roles" (
 
 CREATE TABLE "clients" (
 	"id" serial NOT NULL,
-	"name" character varying(32) NOT NULL,
+	"name" character varying(255) NOT NULL,
 	"entity" character varying(255) NOT NULL,
 	"address" character varying(255) NOT NULL,
 	"address_comments" TEXT NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE "clients" (
 
 CREATE TABLE "providers" (
 	"id" serial NOT NULL,
-	"name" character varying(32) NOT NULL,
+	"name" character varying(255) NOT NULL,
 	"contacts" character varying(255) NOT NULL,
 	"comments" TEXT NOT NULL,
 	CONSTRAINT "providers_pk" PRIMARY KEY ("id")
@@ -62,7 +62,7 @@ CREATE TABLE "clients_sales" (
 	"paid" float(2) NOT NULL,
 	"debt" float(2) NOT NULL,
 	"comments" TEXT NOT NULL,
-	"status" character varying(32) NOT NULL,
+	"status" character varying(255) NOT NULL,
 	CONSTRAINT "clients_sales_pk" PRIMARY KEY ("id")
 ) WITH (
   OIDS=FALSE
@@ -82,7 +82,7 @@ CREATE TABLE "providers_purchases" (
 	"paid" float(2) NOT NULL,
 	"debt" float(2) NOT NULL,
 	"comments" TEXT NOT NULL,
-	"status" character varying(32) NOT NULL,
+	"status" character varying(255) NOT NULL,
 	CONSTRAINT "providers_purchases_pk" PRIMARY KEY ("id")
 ) WITH (
   OIDS=FALSE
@@ -97,6 +97,7 @@ CREATE TABLE "drivers_share" (
 	"amount" integer NOT NULL,
 	"weight" float(2) NOT NULL,
 	"price_per_kilo" float(2) NOT NULL,
+	"status" character varying(255) NOT NULL,
 	CONSTRAINT "drivers_share_pk" PRIMARY KEY ("id")
 ) WITH (
   OIDS=FALSE
@@ -142,12 +143,32 @@ CREATE TABLE "clients_future_sales" (
 	"amount" integer NOT NULL,
 	"order_time" TIMESTAMP NOT NULL,
 	"delivery_time" TIMESTAMP NOT NULL,
+	"status" character varying(255) NOT NULL,
 	"comments" TEXT NOT NULL,
 	CONSTRAINT "clients_future_sales_pk" PRIMARY KEY ("id")
 ) WITH (
   OIDS=FALSE
 );
 
+CREATE TABLE "products" (
+	"id" serial NOT NULL,
+	"product_name" character varying(255) NOT NULL UNIQUE,
+	CONSTRAINT "products_pk" PRIMARY KEY ("id")
+) WITH (
+  OIDS=FALSE
+);
+
+
+
+CREATE TABLE "clients_prices" (
+	"id" serial NOT NULL,
+	"product" character varying(255) NOT NULL,
+	"client_id" integer NOT NULL,
+	"price" float(2) NOT NULL,
+	CONSTRAINT "clients_prices_pk" PRIMARY KEY ("id")
+) WITH (
+  OIDS=FALSE
+);
 
 
 ALTER TABLE "users_roles" ADD CONSTRAINT "users_roles_fk0" FOREIGN KEY ("user_id") REFERENCES "users"("id");
@@ -160,6 +181,7 @@ ALTER TABLE "clients_sales" ADD CONSTRAINT "clients_sales_fk1" FOREIGN KEY ("pro
 ALTER TABLE "clients_sales" ADD CONSTRAINT "clients_sales_fk2" FOREIGN KEY ("driver") REFERENCES "users"("id");
 
 ALTER TABLE "providers_purchases" ADD CONSTRAINT "providers_purchases_fk0" FOREIGN KEY ("provider") REFERENCES "providers"("id");
+ALTER TABLE "providers_purchases" ADD CONSTRAINT "providers_purchases_fk1" FOREIGN KEY ("product") REFERENCES "products"("product_name") ON UPDATE CASCADE;
 
 ALTER TABLE "drivers_share" ADD CONSTRAINT "drivers_share_fk0" FOREIGN KEY ("driver_id") REFERENCES "users"("id");
 ALTER TABLE "drivers_share" ADD CONSTRAINT "drivers_share_fk1" FOREIGN KEY ("purchase_id") REFERENCES "providers_purchases"("id");
@@ -171,3 +193,7 @@ ALTER TABLE "history" ADD CONSTRAINT "history_fk2" FOREIGN KEY ("driver_id") REF
 ALTER TABLE "clients_work_hours" ADD CONSTRAINT "clients_work_hours_fk0" FOREIGN KEY ("client_id") REFERENCES "clients"("id");
 
 ALTER TABLE "clients_future_sales" ADD CONSTRAINT "clients_future_sales_fk0" FOREIGN KEY ("client") REFERENCES "clients"("id");
+ALTER TABLE "clients_future_sales" ADD CONSTRAINT "clients_future_sales_fk1" FOREIGN KEY ("product") REFERENCES "products"("product_name") ON UPDATE CASCADE;
+
+ALTER TABLE "clients_prices" ADD CONSTRAINT "clients_prices_fk0" FOREIGN KEY ("product") REFERENCES "products"("product_name") ON UPDATE CASCADE;
+ALTER TABLE "clients_prices" ADD CONSTRAINT "clients_prices_fk1" FOREIGN KEY ("client_id") REFERENCES "clients"("id");

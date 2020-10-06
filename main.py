@@ -60,6 +60,7 @@ def create_new_user(name: str,
 
         return {
             "new_user": {
+                "id": new_user_id,
                 "name": name,
                 "contacts": contacts,
                 "login": login,
@@ -96,11 +97,13 @@ def create_new_provider(name: str,
         
         create_provider_sql = "insert into providers ( name,\
                                                        contacts,\
-                                                       comments) values (%s, %s, %s);"
+                                                       comments) values (%s, %s, %s) returning id;"
                                                 
         cur.execute(create_provider_sql, (name,
                                           contacts, 
                                           comments))
+        
+        new_provider_id = cur.fetchone()[0]
         
         cur.close()
         
@@ -111,6 +114,7 @@ def create_new_provider(name: str,
 
         return {
             "new_provider": {
+                "id": new_provider_id,
                 "name": name, 
                 "contacts": contacts, 
                 "comments": comments
@@ -198,6 +202,7 @@ def create_new_client(name: str,
 
         return {
             "new_client": {
+                "id": new_client_id,
                 "name": name, 
                 "entity": entity, 
                 "address": address, 
@@ -262,7 +267,7 @@ def create_new_purchase( delivery_time: str,
                                                                  debt,\
                                                                  comments,\
                                                                  status )\
-                                                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                                                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) returning id;"
                                                 
         cur.execute(create_purchase_sql, ( delivery_time, # 1999-01-08 04:05:06
                                            provider_id, 
@@ -275,6 +280,8 @@ def create_new_purchase( delivery_time: str,
                                            debt,
                                            comments,
                                            status ))
+        
+        new_purchase_id = cur.fetchone()[0]
 
         cur.close()
         
@@ -285,6 +292,7 @@ def create_new_purchase( delivery_time: str,
 
         return {
             "new_purchase": {
+                "id": new_purchase_id,
                 "delivery_time": delivery_time,
                 "provider": provider_id,
                 "product": product,
@@ -331,7 +339,7 @@ def create_new_sale( delivery_time: str,
                                                        paid,\
                                                        debt,\
                                                        comments,\
-                                                       status ) values (%s, %s, %s, %s, %s, %s, %s, %s);"
+                                                       status ) values (%s, %s, %s, %s, %s, %s, %s, %s) returning id;"
                                                 
         cur.execute(create_sale_sql, ( delivery_time,
                                        client_id,
@@ -342,6 +350,8 @@ def create_new_sale( delivery_time: str,
                                        comments,
                                        status ))
 
+        new_sale_id = cur.fetchone()[0]
+
         cur.close()
         
         conn.commit()
@@ -351,6 +361,7 @@ def create_new_sale( delivery_time: str,
 
         return {
             "new_sale": {
+                "id": new_sale_id,
                 "delivery_time": delivery_time,
                 "client": client_id,
                 "provider": provider_id,
@@ -376,6 +387,7 @@ def create_new_share(driver_id: int,
                      amount: int,
                      weight: float,
                      price_per_kilo: float,
+                     status: str
                     ):
     conn = None
     try:
@@ -388,14 +400,18 @@ def create_new_share(driver_id: int,
                                                         purchase_id,\
                                                         amount,\
                                                         weight,\
-                                                        price_per_kilo\
-                                                        ) values (%s, %s, %s, %s, %s);"
+                                                        price_per_kilo,\
+                                                        status\
+                                                        ) values (%s, %s, %s, %s, %s, %s) returning id;"
                                                 
         cur.execute(create_share_sql, ( driver_id,
                                         purchase_id,
                                         amount,
                                         weight,
-                                        price_per_kilo ))
+                                        price_per_kilo,
+                                        status ))
+        
+        new_share_id = cur.fetchone()[0]
 
         cur.close()
         
@@ -406,11 +422,13 @@ def create_new_share(driver_id: int,
 
         return {
             "new_share": {
+                "id": new_share_id,
                 "driver_id": driver_id,
                 "purchase_id": purchase_id,
                 "amount": amount,
                 "weight": weight,
-                "price_per_kilo": price_per_kilo
+                "price_per_kilo": price_per_kilo,
+                "status": status
             } 
         }
 
@@ -444,7 +462,7 @@ def create_new_story(sale_id: int,
                                                   amount,\
                                                   weight,\
                                                   price_per_kilo,\
-                                                  total_price ) values (%s, %s, %s, %s, %s, %s);"
+                                                  total_price ) values (%s, %s, %s, %s, %s, %s) returning id;"
                                                 
         cur.execute(create_story_sql, ( sale_id,
                                         share_id,
@@ -452,6 +470,8 @@ def create_new_story(sale_id: int,
                                         weight,
                                         price_per_kilo,
                                         total_price ))
+        
+        new_story_id = cur.fetchone()[0]
 
         cur.close()
         
@@ -462,6 +482,7 @@ def create_new_story(sale_id: int,
 
         return {
             "new_story": {
+                "id": new_story_id,
                 "sale_id": sale_id,
                 "share_id": share_id,
                 "amount": amount,
@@ -485,6 +506,7 @@ def create_clients_future_sale(client_id: int,
                                amount: int,
                                order_time: str,
                                delivery_time: str,
+                               status: str,
                                comments: Optional[str] = ""
                                ):
     conn = None
@@ -499,14 +521,18 @@ def create_clients_future_sale(client_id: int,
                                                                      amount,\
                                                                      order_time,\
                                                                      delivery_time,\
-                                                                     comments) values (%s, %s, %s, %s, %s, %s);"
+                                                                     status,\
+                                                                     comments) values (%s, %s, %s, %s, %s, %s, %s) returning id;"
                                                 
         cur.execute(create_future_sale_sql, ( client_id,
                                               product,
                                               amount,
                                               order_time,
                                               delivery_time,
+                                              status,
                                               comments))
+        
+        new_future_sale_id = cur.fetchone()[0]
 
         cur.close()
         
@@ -517,12 +543,91 @@ def create_clients_future_sale(client_id: int,
 
         return {
             "new_future_sale": {
+                "id": new_future_sale_id,
                 "client_id": client_id,
                 "product": product,
                 "amount": amount,
                 "order_time": order_time,
                 "delivery_time": delivery_time,
+                "status": status,
                 "comments": comments
+            } 
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+@app.post("/create_product/")
+def create_new_product(product_name: str):
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        create_product_sql = "insert into products (product_name) values (%s) returning id;"
+                                                
+        cur.execute(create_product_sql, (product_name,))
+
+        new_product_id = cur.fetchone()[0]
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---NEW PRODUCT | {product_name} | created successfully")
+
+        return {
+            "new_product": {
+                "id": new_product_id,
+                "product_name": product_name
+            } 
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.post("/create_client_price/")
+def create_new_client_price( product_name: str,
+                             client_id: int, 
+                             price: float ):
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        create_client_price_sql = "insert into clients_prices (product_name, client, price) values (%s, %s, %s) returning id;"
+                                                
+        cur.execute(create_client_price_sql, (product_name, client_id, price))
+
+        new_client_price_id = cur.fetchone()[0]
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---NEW CLIENT PRICE | {product_name} | {client_id} | created successfully")
+
+        return {
+            "new_client_price": {
+                "id": new_client_price_id,
+                "product_name": product_name,
+                "client": client_id,
+                "price": price
             } 
         }
 
@@ -688,13 +793,38 @@ def get_all_clients():
 
 
 @app.get("/get_all_purchases/")
-def get_all_purchases():
+def get_all_purchases(provider_id: Optional[int] = None, product_name: Optional[str] = None, status: Optional[str] = None):
     conn = None
     try:
         params = config_database()
 
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
+
+        filter_str = ""
+
+        is_already_one_filter = False
+
+        if provider_id or product_name or status:
+            filter_str = " where "
+        
+            if provider_id:
+                is_already_one_filter = True
+                filter_str += r"providers.id = %s"
+            
+            if product_name:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"product = %s"
+            
+            if status:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"status = %s"
 
         get_all_purchases_sql = "select providers_purchases.id,\
                                       delivery_time,\
@@ -711,11 +841,22 @@ def get_all_purchases():
                                       debt,\
                                       providers_purchases.comments,\
                                       status from providers_purchases \
-                                        left join providers on providers_purchases.provider = providers.id;"
+                                        left join providers on providers_purchases.provider = providers.id" + filter_str + ";"
 
         cur.itersize = 200
-                                                
-        cur.execute(get_all_purchases_sql)
+
+        parametrs_to_cur = []
+
+        if provider_id:
+            parametrs_to_cur.append(provider_id)
+        
+        if product_name:
+            parametrs_to_cur.append(product_name)
+        
+        if status:
+            parametrs_to_cur.append(status)
+
+        cur.execute(get_all_purchases_sql, tuple(parametrs_to_cur))           
 
         purchases_json = {purchase[0]: { "delivery_time": purchase[1],
                                          "provider": {
@@ -754,13 +895,38 @@ def get_all_purchases():
 
 
 @app.get("/get_all_sales/")
-def get_all_sales():
+def get_all_sales(driver_id: Optional[int] = None, client_id: Optional[int] = None, status: Optional[str] = None):
     conn = None
     try:
         params = config_database()
 
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
+
+        filter_str = ""
+
+        is_already_one_filter = False
+
+        if driver_id or client_id or status:
+            filter_str = " where "
+        
+            if driver_id:
+                is_already_one_filter = True
+                filter_str += r"s_driver.id = %s"
+            
+            if client_id:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"s_client.id = %s"
+            
+            if status:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"cs.status = %s"
 
         get_all_sales_sql = "select cs.id,\
                                     cs.delivery_time,\
@@ -800,11 +966,23 @@ def get_all_sales():
                                     left join providers s_provider on cs.provider = s_provider.id\
                                     left join users s_driver on cs.driver = s_driver.id\
                                     left join clients_work_hours cwh on cs.client = cwh.client_id\
-                                    left join providers def_prov on s_client.default_provider = def_prov.id;"
+                                    left join providers def_prov on s_client.default_provider = def_prov.id" + filter_str + ";"
 
         cur.itersize = 200
-                                                
-        cur.execute(get_all_sales_sql)
+
+        parametrs_to_cur = []
+
+        if driver_id:
+            parametrs_to_cur.append(driver_id)
+        
+        if client_id:
+            parametrs_to_cur.append(client_id)
+        
+        if status:
+            parametrs_to_cur.append(status)
+
+        cur.execute(get_all_sales_sql, tuple(parametrs_to_cur))
+        
 
         sales_json = {sale[0]: { 
             "delivery_time": sale[1],
@@ -872,13 +1050,38 @@ def get_all_sales():
 
 
 @app.get("/get_all_shares/")
-def get_all_shares():
+def get_all_shares(driver_id: Optional[int] = None, purchase_id: Optional[int] = None, status: Optional[str] = None):
     conn = None
     try:
         params = config_database()
 
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
+
+        filter_str = ""
+
+        is_already_one_filter = False
+
+        if driver_id or purchase_id or status:
+            filter_str = " where "
+        
+            if driver_id:
+                is_already_one_filter = True
+                filter_str += r"dr.id = %s"
+            
+            if purchase_id:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"pp.id = %s"
+            
+            if status:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"ds.status = %s"
 
         get_all_share_sql = "select ds.id,\
                                     dr.id,\
@@ -901,14 +1104,26 @@ def get_all_shares():
                                     pp.status,\
                                     ds.amount,\
                                     ds.weight,\
-                                    ds.price_per_kilo from drivers_share ds\
+                                    ds.price_per_kilo,\
+                                    ds.status from drivers_share ds\
                                     left join users dr on ds.driver_id = dr.id\
                                     left join providers_purchases pp on ds.purchase_id = pp.id\
-                                    left join providers pr on pp.provider = pr.id;"
+                                    left join providers pr on pp.provider = pr.id" + filter_str + ";"
 
         cur.itersize = 200
-                                                
-        cur.execute(get_all_share_sql)
+
+        parametrs_to_cur = []
+
+        if driver_id:
+            parametrs_to_cur.append(driver_id)
+        
+        if purchase_id:
+            parametrs_to_cur.append(purchase_id)
+        
+        if status:
+            parametrs_to_cur.append(status)
+
+        cur.execute(get_all_share_sql, tuple(parametrs_to_cur))
 
         shares_json = {share[0]: { 
             "driver": {
@@ -937,7 +1152,8 @@ def get_all_shares():
             },
             "amount": share[19],
             "weight": share[20],
-            "price_per_kilo": share[21]
+            "price_per_kilo": share[21],
+            "status": share[22]
         } for share in cur}
 
         cur.close()
@@ -960,13 +1176,38 @@ def get_all_shares():
 
 
 @app.get("/get_all_history/")
-def get_all_history():
+def get_all_history(client_id: Optional[int] = None, driver_id: Optional[int] = None, provider_id: Optional[int] = None):
     conn = None
     try:
         params = config_database()
 
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
+
+        filter_str = ""
+
+        is_already_one_filter = False
+
+        if client_id or driver_id or provider_id:
+            filter_str = " where "
+        
+            if client_id:
+                is_already_one_filter = True
+                filter_str += r"s_client.id = %s"
+            
+            if driver_id:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"dr.id = %s"
+            
+            if provider_id:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"pr.id = %s"
 
         get_all_history_sql = "select h.id,\
                                     cs.id,\
@@ -1025,6 +1266,7 @@ def get_all_history():
                                     ds.amount,\
                                     ds.weight,\
                                     ds.price_per_kilo,\
+                                    ds.status,\
                                     h.amount,\
                                     h.weight,\
                                     h.price_per_kilo,\
@@ -1041,8 +1283,19 @@ def get_all_history():
                                     left join providers pr on pp.provider = pr.id;"
 
         cur.itersize = 200
-                                                
-        cur.execute(get_all_history_sql)
+
+        parametrs_to_cur = []
+
+        if client_id:
+            parametrs_to_cur.append(client_id)
+        
+        if driver_id:
+            parametrs_to_cur.append(driver_id)
+        
+        if provider_id:
+            parametrs_to_cur.append(provider_id)
+
+        cur.execute(get_all_history_sql, tuple(parametrs_to_cur))
 
         history_json = {story[0]: { 
             "sale": {
@@ -1119,12 +1372,13 @@ def get_all_history():
                 },
                 "amount": story[54],
                 "weight": story[55],
-                "price_per_kilo": story[56]
+                "price_per_kilo": story[56],
+                "status": story[57]
             },
-            "amount": story[57],
-            "weight": story[58],
-            "price_per_kilo": story[59],
-            "total_price": story[60]
+            "amount": story[58],
+            "weight": story[59],
+            "price_per_kilo": story[60],
+            "total_price": story[61]
         } for story in cur}
 
         cur.close()
@@ -1377,13 +1631,31 @@ def get_all_providers_names():
 
 
 @app.get("/get_all_future_sales/")
-def get_all_future_sales():
+def get_all_future_sales(client_id: Optional[int] = None, status: Optional[str] = None):
     conn = None
     try:
         params = config_database()
         
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
+
+        filter_str = ""
+
+        is_already_one_filter = False
+
+        if client_id or status:
+            filter_str = " where "
+            
+            if client_id:
+                is_already_one_filter = True
+                filter_str += r"c.id = %s"
+            
+            if status:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"cfs.status = %s"
         
         get_all_cfuture_sales_sql = "select cfs.id,\
                                             c.id,\
@@ -1410,14 +1682,23 @@ def get_all_future_sales():
                                             cfs.amount,\
                                             cfs.order_time,\
                                             cfs.delivery_time,\
+                                            cfs.status,\
                                             cfs.comments from clients_future_sales cfs\
                                             left join clients c on cfs.client = c.id\
                                             left join clients_work_hours cwh on cfs.client = cwh.client_id\
-                                            left join providers def_prov on c.default_provider = def_prov.id;"
+                                            left join providers def_prov on c.default_provider = def_prov.id" + filter_str + ";"
 
         cur.itersize = 200
                                                 
-        cur.execute(get_all_cfuture_sales_sql)
+        parametrs_to_cur = []
+    
+        if client_id:
+            parametrs_to_cur.append(client_id)
+        
+        if status:
+            parametrs_to_cur.append(status)
+
+        cur.execute(get_all_cfuture_sales_sql, tuple(parametrs_to_cur))
 
         sales_json = {sale[0]: { 
             "client": {
@@ -1450,7 +1731,8 @@ def get_all_future_sales():
             "amount": sale[22],
             "order_time": sale[23],
             "delivery_time": sale[24],
-            "comments": sale[25]
+            "status": sale[25],
+            "comments": sale[26]
         } for sale in cur}
         
         cur.close()
@@ -1462,6 +1744,80 @@ def get_all_future_sales():
         
         return {
             "future_sales": sales_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_products/")
+def get_all_products():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_products_sql = "select id, product_name from products;"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_products_sql)
+
+        products_json = {product[0]: { "product_name": product[1] } for product in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL PRODUCTS successfully")
+        
+        return {
+            "products": products_json
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.get("/get_all_clients_prices/")
+def get_all_clients_prices():
+    conn = None
+    try:
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        get_all_clients_prices_sql = "select id, product_name, client, price from clients_prices;"
+
+        cur.itersize = 200
+                                                
+        cur.execute(get_all_clients_prices_sql)
+
+        clients_prices_json = {client_price[0]: { "product_name": client_price[1],
+                                                  "client": client_price[2],
+                                                  "price": client_price[3] } for client_price in cur}
+        
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---GOT ALL CLIENTS PRICES successfully")
+        
+        return {
+            "clients_prices": clients_prices_json
         }
 
     except (Exception, psycopg2.DatabaseError) as error:
@@ -1871,7 +2227,8 @@ def update_drivers_share_cell(share_id: int,
                     "purchase_id": updated_share_tuple[2],
                     "amount": updated_share_tuple[3],
                     "weight": updated_share_tuple[4],
-                    "price_per_kilo": updated_share_tuple[5]
+                    "price_per_kilo": updated_share_tuple[5],
+                    "status": updated_share_tuple[6]
                 }
             }
         }
@@ -1973,7 +2330,102 @@ def update_clients_future_sales_cell(sale_id: int,
                     "amount": updated_clients_future_sales_tuple[3],
                     "order_time": updated_clients_future_sales_tuple[4],
                     "delivery_time": updated_clients_future_sales_tuple[5],
-                    "comments": updated_clients_future_sales_tuple[6]
+                    "status": updated_clients_future_sales_tuple[6],
+                    "comments": updated_clients_future_sales_tuple[7]
+                }
+            }
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.put("/update_products_cell/")
+def update_products_cell( product_id: int,
+                          column: str,
+                          new_value: Any ):
+    conn = None
+    try:
+        if column == 'id':
+            return {
+                "error": "You cannot modify 'id' column"
+            }
+
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        update_product_cell_sql = \
+            SQL("update products set {} = %s where id = %s returning *;").format(Identifier(column))
+                                                
+        cur.execute(update_product_cell_sql, (new_value, product_id))
+
+        updated_product_tuple = cur.fetchone()
+
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---UPDATED PRODUCT {product_id} | column {column} | new value {new_value}")
+        
+        return {
+            "updated_product": {
+                updated_product_tuple[0]: {
+                    "product_name": updated_product_tuple[1]
+                }
+            }
+        }
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        logging.exception("Exception occurred")
+        return {"error": str(error)}
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+@app.put("/update_clients_prices_cell/")
+def update_clients_prices_cell( client_price_id: int,
+                                column: str,
+                                new_value: Any ):
+    conn = None
+    try:
+        if column == 'id':
+            return {
+                "error": "You cannot modify 'id' column"
+            }
+
+        params = config_database()
+        
+        conn = psycopg2.connect(**params)
+        cur = conn.cursor()
+        
+        update_client_price_cell_sql = \
+            SQL("update clients_prices set {} = %s where id = %s returning *;").format(Identifier(column))
+                                                
+        cur.execute(update_client_price_cell_sql, (new_value, client_price_id))
+
+        updated_client_price_tuple = cur.fetchone()
+
+        cur.close()
+        
+        conn.commit()
+
+        current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        logging.info(f"{current_time}---UPDATED CLIENT PRICE {client_price_id} | column {column} | new value {new_value}")
+        
+        return {
+            "updated_client_price": {
+                updated_client_price_tuple[0]: {
+                    "product_name": updated_client_price_tuple[1],
+                    "client": updated_client_price_tuple[2],
+                    "price": updated_client_price_tuple[3]
                 }
             }
         }
@@ -2196,6 +2648,10 @@ def update_share_weight(share_id: int, weight: float):
 def update_share_price_per_kilo(share_id: int, price_per_kilo: int):
     return update_drivers_share_cell(share_id, 'price_per_kilo', price_per_kilo)
 
+@app.put("/update_share_status/")
+def update_share_status(share_id: int, status: str):
+    return update_drivers_share_cell(share_id, 'status', status)
+
 # ========================================================================== UPDATE CELL HISTORY
 @app.put("/update_story_sale/")
 def update_story_sale(story_id: int, sale_id: int):
@@ -2242,9 +2698,31 @@ def update_future_sale_order_time(f_sale_id: int, order_time: str):
 def update_future_sale_delivery_time(f_sale_id: int, delivery_time: str):
     return update_clients_future_sales_cell(f_sale_id, 'delivery_time', delivery_time)
 
+@app.put("/update_future_sale_status/")
+def update_future_sale_status(f_sale_id: int, status: str):
+    return update_clients_future_sales_cell(f_sale_id, 'status', status)
+
 @app.put("/update_future_sale_comments/")
 def update_future_sale_comments(f_sale_id: int, comments: str):
     return update_clients_future_sales_cell(f_sale_id, 'comments', comments)
+
+# ========================================================================== UPDATE CELL PRODUCTS
+@app.put("/update_products_product_name/")
+def update_products_product_name(product_id: int, product_name: str):
+    return update_products_cell(product_id, 'product_name', product_name)
+
+# ========================================================================== UPDATE CELL CLIENTS PRICES
+@app.put("/update_clients_prices_product_name/")
+def update_clients_prices_product_name(client_price_id: int, product_name: str):
+    return update_clients_prices_cell(client_price_id, 'product_name', product_name)
+
+@app.put("/update_clients_prices_client/")
+def update_clients_prices_client(client_price_id: int, client_id: int):
+    return update_clients_prices_cell(client_price_id, 'client', client_id)
+
+@app.put("/update_clients_prices_price/")
+def update_clients_prices_price(client_price_id: int, price: float):
+    return update_clients_prices_cell(client_price_id, 'price', price)
 
 
 # ========================================================================== CHECK USER PW AND ROLE
