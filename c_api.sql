@@ -162,7 +162,7 @@ CREATE TABLE "products" (
 
 CREATE TABLE "clients_prices" (
 	"id" serial NOT NULL,
-	"product" character varying(255) NOT NULL,
+	"product_name" character varying(255) NOT NULL,
 	"client_id" integer NOT NULL,
 	"price" float(2) NOT NULL,
 	CONSTRAINT "clients_prices_pk" PRIMARY KEY ("id")
@@ -195,5 +195,5 @@ ALTER TABLE "clients_work_hours" ADD CONSTRAINT "clients_work_hours_fk0" FOREIGN
 ALTER TABLE "clients_future_sales" ADD CONSTRAINT "clients_future_sales_fk0" FOREIGN KEY ("client") REFERENCES "clients"("id");
 ALTER TABLE "clients_future_sales" ADD CONSTRAINT "clients_future_sales_fk1" FOREIGN KEY ("product") REFERENCES "products"("product_name") ON UPDATE CASCADE;
 
-ALTER TABLE "clients_prices" ADD CONSTRAINT "clients_prices_fk0" FOREIGN KEY ("product") REFERENCES "products"("product_name") ON UPDATE CASCADE;
+ALTER TABLE "clients_prices" ADD CONSTRAINT "clients_prices_fk0" FOREIGN KEY ("product_name") REFERENCES "products"("product_name") ON UPDATE CASCADE;
 ALTER TABLE "clients_prices" ADD CONSTRAINT "clients_prices_fk1" FOREIGN KEY ("client_id") REFERENCES "clients"("id");
