@@ -609,7 +609,7 @@ def create_new_client_price( product_name: str,
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         
-        create_client_price_sql = "insert into clients_prices (product_name, client, price) values (%s, %s, %s) returning id;"
+        create_client_price_sql = "insert into clients_prices (product_name, client_id, price) values (%s, %s, %s) returning id;"
                                                 
         cur.execute(create_client_price_sql, (product_name, client_id, price))
 
@@ -626,7 +626,7 @@ def create_new_client_price( product_name: str,
             "new_client_price": {
                 "id": new_client_price_id,
                 "product_name": product_name,
-                "client": client_id,
+                "client_id": client_id,
                 "price": price
             } 
         }
@@ -1799,14 +1799,14 @@ def get_all_clients_prices():
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
         
-        get_all_clients_prices_sql = "select id, product_name, client, price from clients_prices;"
+        get_all_clients_prices_sql = "select id, product_name, client_id, price from clients_prices;"
 
         cur.itersize = 200
                                                 
         cur.execute(get_all_clients_prices_sql)
 
         clients_prices_json = {client_price[0]: { "product_name": client_price[1],
-                                                  "client": client_price[2],
+                                                  "client_id": client_price[2],
                                                   "price": client_price[3] } for client_price in cur}
         
         cur.close()
@@ -2424,7 +2424,7 @@ def update_clients_prices_cell( client_price_id: int,
             "updated_client_price": {
                 updated_client_price_tuple[0]: {
                     "product_name": updated_client_price_tuple[1],
-                    "client": updated_client_price_tuple[2],
+                    "client_id": updated_client_price_tuple[2],
                     "price": updated_client_price_tuple[3]
                 }
             }
@@ -2718,7 +2718,7 @@ def update_clients_prices_product_name(client_price_id: int, product_name: str):
 
 @app.put("/update_clients_prices_client/")
 def update_clients_prices_client(client_price_id: int, client_id: int):
-    return update_clients_prices_cell(client_price_id, 'client', client_id)
+    return update_clients_prices_cell(client_price_id, 'client_id', client_id)
 
 @app.put("/update_clients_prices_price/")
 def update_clients_prices_price(client_price_id: int, price: float):
