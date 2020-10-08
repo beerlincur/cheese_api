@@ -880,7 +880,7 @@ def get_all_purchases(provider_id: Optional[int] = None, product_name: Optional[
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---GOT ALL PURCHASES successfully")
+        logging.info(f"{current_time}---GOT PURCHASES successfully")
 
         return {
             "purchases": purchases_json
@@ -1035,7 +1035,7 @@ def get_all_sales(driver_id: Optional[int] = None, client_id: Optional[int] = No
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---GOT ALL SALES successfully")
+        logging.info(f"{current_time}---GOT SALES successfully")
 
         return {
             "sales": sales_json
@@ -1161,7 +1161,7 @@ def get_all_shares(driver_id: Optional[int] = None, purchase_id: Optional[int] =
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---GOT ALL SHARES successfully")
+        logging.info(f"{current_time}---GOT DRIVERS SHARES successfully")
 
         return {
             "shares": shares_json
@@ -1386,7 +1386,7 @@ def get_all_history(client_id: Optional[int] = None, driver_id: Optional[int] = 
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---GOT ALL HISTORY successfully")
+        logging.info(f"{current_time}---GOT HISTORY successfully")
 
         return {
             "history": history_json
@@ -1740,7 +1740,7 @@ def get_all_future_sales(client_id: Optional[int] = None, status: Optional[str] 
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---GOT ALL FUTURE SALES successfully")
+        logging.info(f"{current_time}---GOT FUTURE SALES successfully")
         
         return {
             "future_sales": sales_json
@@ -1791,13 +1791,31 @@ def get_all_products():
 
 
 @app.get("/get_all_clients_prices/")
-def get_all_clients_prices():
+def get_all_clients_prices(client_id: Optional[int] = None, product_name: Optional[str] = None):
     conn = None
     try:
         params = config_database()
         
         conn = psycopg2.connect(**params)
         cur = conn.cursor()
+
+        filter_str = ""
+
+        is_already_one_filter = False
+
+        if (client_id is not None) or (product_name is not None):
+            filter_str = " where "
+            
+            if client_id is not None:
+                is_already_one_filter = True
+                filter_str += r"s_client.id = %s"
+            
+            if product_name is not None:
+                if is_already_one_filter:
+                    filter_str += " and "
+                
+                is_already_one_filter = True
+                filter_str += r"cp.product_name = %s"
         
         get_all_clients_prices_sql = "select cp.id, \
                                              cp.product_name,\
@@ -1825,11 +1843,19 @@ def get_all_clients_prices():
                                              cp.price from clients_prices cp\
                                              left join clients s_client on cp.client_id = s_client.id\
                                              left join clients_work_hours cwh on cp.client_id = cwh.client_id\
-                                             left join providers def_prov on s_client.default_provider = def_prov.id;"
+                                             left join providers def_prov on s_client.default_provider = def_prov.id" + filter_str + ";"
 
         cur.itersize = 200
-                                                
-        cur.execute(get_all_clients_prices_sql)
+
+        parametrs_to_cur = []
+    
+        if client_id is not None:
+            parametrs_to_cur.append(client_id)
+        
+        if product_name is not None:
+            parametrs_to_cur.append(product_name)
+
+        cur.execute(get_all_clients_prices_sql, tuple(parametrs_to_cur))
 
         clients_prices_json = {client_price[0]: { "product_name": client_price[1],
                                                   "client": {
@@ -1866,7 +1892,7 @@ def get_all_clients_prices():
         conn.commit()
 
         current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        logging.info(f"{current_time}---GOT ALL CLIENTS PRICES successfully")
+        logging.info(f"{current_time}---GOT CLIENTS PRICES successfully")
         
         return {
             "clients_prices": clients_prices_json
