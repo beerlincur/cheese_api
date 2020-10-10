@@ -109,7 +109,6 @@ CREATE TABLE "history" (
 	"id" serial NOT NULL,
 	"sale_id" integer NOT NULL,
 	"share_id" integer NOT NULL,
-	"driver_id" integer NOT NULL,
 	"amount" integer NOT NULL,
 	"weight" float(2) NOT NULL,
 	"price_per_kilo" float(2) NOT NULL,
@@ -188,7 +187,6 @@ ALTER TABLE "drivers_share" ADD CONSTRAINT "drivers_share_fk1" FOREIGN KEY ("pur
 
 ALTER TABLE "history" ADD CONSTRAINT "history_fk0" FOREIGN KEY ("sale_id") REFERENCES "clients_sales"("id");
 ALTER TABLE "history" ADD CONSTRAINT "history_fk1" FOREIGN KEY ("share_id") REFERENCES "drivers_share"("id");
-ALTER TABLE "history" ADD CONSTRAINT "history_fk2" FOREIGN KEY ("driver_id") REFERENCES "users"("id");
 
 ALTER TABLE "clients_work_hours" ADD CONSTRAINT "clients_work_hours_fk0" FOREIGN KEY ("client_id") REFERENCES "clients"("id");
 
