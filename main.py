@@ -1280,7 +1280,7 @@ def get_all_history(client_id: Optional[int] = None, driver_id: Optional[int] = 
                                     left join drivers_share ds on h.share_id = ds.id\
                                     left join users dr on ds.driver_id = dr.id\
                                     left join providers_purchases pp on ds.purchase_id = pp.id\
-                                    left join providers pr on pp.provider = pr.id;"
+                                    left join providers pr on pp.provider = pr.id" + filter_str + ";"
 
         cur.itersize = 200
 
